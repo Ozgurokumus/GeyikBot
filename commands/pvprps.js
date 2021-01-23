@@ -24,6 +24,8 @@ module.exports = async function (message, tokens) {
                     time: 60000
                 })
 
+                let answers = {};
+
                 collector.on('collect', (reaction, user) => {
                     //Send user private message
                     user.send("Select one while your opponent does the same!").then(privM => {
@@ -37,8 +39,31 @@ module.exports = async function (message, tokens) {
                         }).then((collected) => {
                             const react = collected.first();
 
-                            message.channel.send(user.toString() + " said " + react.emoji.name);
                             console.log(user.toString() + " said " + react.emoji.name);
+                            answers[user.username] = react.emoji.name;
+
+                            if (Object.keys(answers).length == 2) {
+
+                                let p1 = emojis.indexOf(answers[Object.keys(answers)[0]]);
+                                let p2 = emojis.indexOf(answers[Object.keys(answers)[1]]);
+
+                                let p1Name = Object.keys(answers)[0];
+                                let p2Name = Object.keys(answers)[1];
+
+                                //When both players played their moves
+                                let emojiText = `${Object.keys(answers)[0]} - ${emojis[p1]}\n${Object.keys(answers)[1]} - ${emojis[p2]}`;
+
+                                if (p1 == p2) {
+                                    // Draw
+                                    createEmbed(true, "X", message.channel, emojiText);
+                                } else if ((p2 + 1) % 3 == p1) {
+                                    // Player1 win
+                                    createEmbed(false, p1Name, message.channel, emojiText);
+                                } else {
+                                    // Player2 win
+                                    createEmbed(false, p2Name, message.channel, emojiText);
+                                }
+                            }
                         });
                     }).catch((e) => {
                         console.log("HERE2" + e);
@@ -55,52 +80,19 @@ module.exports = async function (message, tokens) {
 
 
 }
-//     const filter = (reaction, user) => {
-//         return ["🗻", "📜", "✂"].includes(reaction.emoji.name) && user.id === message.author.id;
-//     };
 
-//     message.awaitReactions(filter, {
-//             max: 1,
-//             time: 60000,
-//             errors: ["time"]
-//         })
-//         .then(collected => {
-//             const reaction = collected.first();
+function createEmbed(draw, whoWin, channel, emojis) {
+    let colorCode = (draw ? "#91A6A6" : "#00D166");
 
-//             if (emojis.includes(reaction.emoji.name)) {
-//                 let move = reaction.emoji.name;
-//                 let playerIdx = emojis.indexOf(move); //console.log(emojis.indexOf(move));
-//                 let botIdx = Math.floor(Math.random() * 3); //console.log(botIdx);              
-//                 if (playerIdx == botIdx) {
-//                     // Draw
-//                     createEmbed(0, message.author.username, message.channel, emojis[botIdx]);
-//                 } else if ((botIdx + 1) % 3 == playerIdx) {
-//                     // Player win
-//                     createEmbed(1, message.author.username, message.channel, emojis[botIdx]);
-//                 } else {
-//                     // Bot win
-//                     createEmbed(-1, message.author.username, message.channel, emojis[botIdx]);
-//                 }
-//             } else {
-//                 message.channel.send("Ne girdin yaw");
-//             }
-//         })
-//         .catch(collected => {
-//             message.reply("you reacted with neither a thumbs up, nor a thumbs down.");
-//         });
-// }
+    let text = (draw ? ("** Draw! **") : ("**" + whoWin + "** won!"));
+    // inside a command, event listener, etc.
+    const exampleEmbed = new Discord.MessageEmbed()
+        .setColor(colorCode)
+        .setURL("https://discord.js.org/")
+        .addFields({
+            name: text,
+            value: emojis
+        })
 
-// function createEmbed(isWin, name, channel, emoji) {
-//     let colorCode = (isWin == -1) ? "#FD0061" : ((isWin == 0) ? "#91A6A6" : "#00D166");
-//     let text = (isWin == -1) ? ("** " + name + "** lose!") : ((isWin == 0) ? ("** Draw! **") : ("**" + name + "** win!"));
-//     // inside a command, event listener, etc.
-//     const exampleEmbed = new Discord.MessageEmbed()
-//         .setColor(colorCode)
-//         .setURL("https://discord.js.org/")
-//         .addFields({
-//             name: emoji,
-//             value: text
-//         })
-
-//     channel.send(exampleEmbed);
-// }
+    channel.send(exampleEmbed);
+}
