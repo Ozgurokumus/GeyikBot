@@ -16,7 +16,7 @@ module.exports = async function (message, tokens) {
     let collector;
     let dict = {};
 
-    message.channel.send("Who wants to play with **" + message.author.username + "**?")
+    message.channel.send("**Who wants to play rock paper scissors?**")
         .then(playW => {
             playW.react("🖐").then(() => {
                 collector = playW.createReactionCollector(opponentFilter, {
