@@ -45,13 +45,12 @@ module.exports = async function (message, tokens) {
 function messageSomeonePriv(questioner, playerList, channel) {
     console.log("Trying to privmessage");
 
-    let playerListCopy = [...playerList];
+    // let playerListCopy = [...playerList];
 
-
-    const index = playerList.indexOf(questioner);
-    if (index > -1) {
-        playerList.splice(index, 1);
-    }
+    // const index = playerList.indexOf(questioner);
+    // if (index > -1) {
+    //     playerList.splice(index, 1);
+    // }
 
     let playerFields = [];
     for (let i = 0; i < playerList.length; i++) {
@@ -100,27 +99,10 @@ function messageSomeonePriv(questioner, playerList, channel) {
 
                     playerList[askingToIdx].send(`An anonymous user asked you\n**${askingQuestion}** ,who is your answer?`);
 
-                    const index2 = playerListCopy.indexOf(playerList[askingToIdx]);
-                    if (index > -1) {
-                        playerListCopy.splice(index2, 1);
-                    }
-
-                    let playerFields2 = [];
-                    for (let i = 0; i < playerListCopy.length; i++) {
-                        let field = {
-                            name: playerListCopy[i].username,
-                            value: i.toString(),
-                            inline: true
-                        }
-
-                        playerFields2.push(field);
-                    }
-
-
                     let answerAllPlayers = new Discord.MessageEmbed()
                         .setColor('#0099ff')
                         .setTitle('Select someone below in 120 Seconds')
-                        .addFields(playerFields2)
+                        .addFields(playerFields)
                         .setTimestamp()
                         .setFooter('Created by #poxlr2422');
 
@@ -132,30 +114,50 @@ function messageSomeonePriv(questioner, playerList, channel) {
                         });
 
                         privCollector3.on('collect', m => {
-                            console.log(`Answer is ${playerListCopy[m.content]}`);
-                            // console.log(playerListCopy);
-
-                            channel.send(`A question is asked and ${playerList[askingToIdx]} said the answer is ${playerListCopy[m.content]}\nNow they will play Rock Paper Scissors`);
+                            console.log(`Answer is ${playerList[m.content]}`);
+                            channel.send(`A question is asked and ${playerList[askingToIdx]} said the answer is ${playerList[m.content]}\nNow they will play Rock Paper Scissors`);
                         });
                     });
-
-
-
                 });
             });
-
-
-
         });
     });
 
-
-
-
-
 }
 
+function fieldsExcluding(list, excludeName) {
+    let index;
+    for (let i = 0; i < list.length; i++) {
+        if (list[i].username == excludeName) {
+            index = i;
+        }
+    }
+
+    if (index > -1) {
+        list.splice(index, 1);
+        console.log(list);
+    }
+
+    let fields = [];
+    for (let i = 0; i < list.length; i++) {
+        let field = {
+            name: list[i].username,
+            value: i.toString(),
+            inline: true
+        }
+
+        list.push(field);
+    }
+    console.log(fields);
+    return fields;
+}
 
 function isNumeric(value) {
     return /^-?\d+$/.test(value);
+}
+
+//⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇ Özgürün alanı ⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇
+
+function startPvpRpsBetween(user1, user2) {
+    return; //-1 if user1 wins, 0 if draw, 1 if user2 wins
 }
