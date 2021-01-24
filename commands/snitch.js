@@ -2,7 +2,6 @@ const Discord = require('discord.js');
 
 
 module.exports = async function (message, tokens) {
-
     let playerSet = new Set();
     let playerList;
 
@@ -31,18 +30,20 @@ module.exports = async function (message, tokens) {
         playerAwait.on('end', collected => {
             console.log(`Collected ${collected.size} items\nPlayer set len:${playerSet.size}`);
             if (playerSet.size > 1) {
-                playerList = Array.from(playerSet);
-                let questioner = playerList[Math.floor(Math.random() * playerList.length)];
-                messageSomeonePriv(questioner, playerList, message.channel);
-
+                startGameWithSet(playerSet, message.channel);
             }
         });
     });
 
 }
 
+function startGameWithSet(playerSet, channel) {
+    playerList = Array.from(playerSet);
+    let questioner = playerList[Math.floor(Math.random() * playerList.length)];
+    messageSomeonePriv(questioner, playerList, channel, playerSet);
+}
 
-function messageSomeonePriv(questioner, playerList, channel) {
+function messageSomeonePriv(questioner, playerList, channel, playerSet) {
     console.log("Trying to privmessage");
 
     let playerListForQuestioner = listDeleteUser(playerList, questioner.username);
@@ -103,7 +104,7 @@ function messageSomeonePriv(questioner, playerList, channel) {
                             channel.send(`A question is asked and ${playerListForQuestioner[askingToIdx]} said the answer is ${playerListForAnswerer[m.content]}\nNow they will play Rock Paper Scissors`);
 
                             //RECURSION
-                            startRecursiveRPS(playerListForQuestioner[askingToIdx], playerListForAnswerer[m.content], askingQuestion, channel);
+                            startRecursiveRPS(playerListForQuestioner[askingToIdx], playerListForAnswerer[m.content], askingQuestion, channel, playerSet);
                         });
                     });
                 });
@@ -153,7 +154,7 @@ function isNumeric(value) {
 
 //⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇ Özgürün alanı ⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇
 
-function startRecursiveRPS(user1, user2, secQuestion, channel) {
+function startRecursiveRPS(user1, user2, secQuestion, channel, playerSet) {
     startPvpRpsBetween(user1, user2)
         .then((winStatus) => {
             console.log("Game has been resolved to ", winStatus);
@@ -172,6 +173,27 @@ function startRecursiveRPS(user1, user2, secQuestion, channel) {
                 user2.send(createEmbed(1));
                 channel.send(`${user2} won the match. The question asked was\n**${secQuestion}**`);
             }
+
+            channel.send("Wanna play again?").then((again) => {
+                again.react("🔄").then(() => {
+                    const replayFilter = (reaction, user) => {
+                        return ['🔄'].includes(reaction.emoji.name) && user.id != "799787185402019880";
+                    };
+
+                    again.awaitReactions(replayFilter, {
+                            max: 1,
+                            time: 60000,
+                            errors: ['time']
+                        })
+                        .then(collected => {
+                            const reaction = collected.first();
+                            startGameWithSet(playerSet, channel);
+                        })
+                        .catch(collected => {
+                            console.log("Süre bitti");
+                        });
+                })
+            });
         });
 }
 
