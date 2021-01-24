@@ -10,33 +10,29 @@ module.exports = async function (message, tokens) {
         return ["🗻","📜","✂"].includes(reaction.emoji.name) && user.id === message.author.id;
     };
     
-    message.awaitReactions(filter, { max: 1, time: 60000, errors: ["time"] })
+    message.awaitReactions(filter, { max: 1, time: 20000, errors: ["time"] })
         .then(collected => {
             const reaction = collected.first();
 
-            if (emojis.includes(reaction.emoji.name)){                   
-                let move = reaction.emoji.name;
-                let playerIdx = emojis.indexOf(move); //console.log(emojis.indexOf(move));
-                let botIdx = Math.floor(Math.random() * 3); //console.log(botIdx);              
-                if (playerIdx == botIdx){
-                    // Draw
-                    createEmbed(0,message.author.username,message.channel,emojis[botIdx]); 
-                }
-                else if ((botIdx+1)%3 == playerIdx){
-                    // Player win
-                    createEmbed(1,message.author.username,message.channel,emojis[botIdx]);
-                }
-                else{
-                    // Bot win
-                    createEmbed(-1,message.author.username,message.channel,emojis[botIdx]);
-                }                    
-            }   
-            else{
-                message.channel.send("Ne girdin yaw"); 
+                          
+            let move = reaction.emoji.name;
+            let playerIdx = emojis.indexOf(move); //console.log(emojis.indexOf(move));
+            let botIdx = Math.floor(Math.random() * 3); //console.log(botIdx);              
+            if (playerIdx == botIdx){
+                // Draw
+                createEmbed(0,message.author.username,message.channel,emojis[botIdx]); 
             }
+            else if ((botIdx+1)%3 == playerIdx){
+                // Player win
+                createEmbed(1,message.author.username,message.channel,emojis[botIdx]);
+            }
+            else{
+                // Bot win
+                createEmbed(-1,message.author.username,message.channel,emojis[botIdx]);
+            }                    
         })
         .catch(collected => {
-            message.reply("you reacted with neither a thumbs up, nor a thumbs down.");
+            message.reply("You entered invalid reaction");
         });
 }
 
