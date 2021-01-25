@@ -1,16 +1,16 @@
 const Discord = require('discord.js');
 
-
 module.exports = async function (message, tokens) {
+
     let playerSet = new Set();
     let playerList;
 
     let playerAwait;
     const filter = (reaction, user) => {
-        return ["🖐", "✅"].includes(reaction.emoji.name) && user.id != "799787185402019880";
+        return ["🖐", "✅"].includes(reaction.emoji.name) && (!user.bot);
     };
 
-    message.channel.send("**Who wants to play snitch!**").then(whoWants => {
+    message.channel.send("**Who wants to play snitch!** (Press 🖐 to join, press ✅ to start the game!)").then(whoWants => {
         whoWants.react("🖐").then(() => whoWants.react("✅"));
         return whoWants;
     }).then((whoWants) => {
@@ -29,21 +29,27 @@ module.exports = async function (message, tokens) {
 
         playerAwait.on('end', collected => {
             console.log(`Collected ${collected.size} items\nPlayer set len:${playerSet.size}`);
-            if (playerSet.size > 1) {
+            if ((playerSet.size > 1)) {
                 startGameWithSet(playerSet, message.channel);
+            }
+            else{
+                message.channel.send("Not enough players to start!");
+                whoWants.delete();
             }
         });
     });
-
 }
 
 function startGameWithSet(playerSet, channel) {
+    console.log(playerSet);
+    endMessage(channel);
     playerList = Array.from(playerSet);
     let questioner = playerList[Math.floor(Math.random() * playerList.length)];
     messageSomeonePriv(questioner, playerList, channel, playerSet);
 }
 
 function messageSomeonePriv(questioner, playerList, channel, playerSet) {
+    channel.send("An anonymous player is writing the question.")
     console.log("Trying to privmessage");
 
     let playerListForQuestioner = listDeleteUser(playerList, questioner.username);
@@ -51,14 +57,18 @@ function messageSomeonePriv(questioner, playerList, channel, playerSet) {
 
     let questionerAllPlayers = new Discord.MessageEmbed()
         .setColor('#0099ff')
-        .setTitle('Select someone below in 60 Seconds')
+        .setTitle('Select someone below in 60 Seconds. Enter his/her number below.')
         .addFields(playerFields)
 
-    const isNumericFilter = (m) => isNumeric(m.content.trim());
+    
+    const isNumericFilter = (m) => (isNumeric(m.content.trim())) && (0 <= parseInt(m.content.trim())) &&(parseInt(m.content.trim()) < playerListForQuestioner.length) && (parseInt(m.content.trim()) < playerListForQuestioner.length) && (!m.author.bot);
+    const invalidFilter = (m) => ((!isNumeric(m.content.trim())) || (parseInt(m.content.trim()) >= playerListForQuestioner.length) || (parseInt(m.content.trim()) < 0)) && (!m.author.bot);
     let privCollector;
-
+    let privCollectorError;
     let askingToIdx;
     let askingQuestion;
+
+
 
     questioner.send(questionerAllPlayers).then((privM) => {
         privCollector = privM.channel.createMessageCollector(isNumericFilter, {
@@ -66,7 +76,12 @@ function messageSomeonePriv(questioner, playerList, channel, playerSet) {
             time: 60000
         });
 
+        privCollectorError = privM.channel.createMessageCollector(invalidFilter, {
+            time: 60000
+        });
+
         privCollector.on('collect', m => {
+            privCollectorError.stop();
             askingToIdx = parseInt(m.content);
             console.log(`Collected ${m.content}`);
 
@@ -77,25 +92,29 @@ function messageSomeonePriv(questioner, playerList, channel, playerSet) {
                 let privCollector2 = privM2.channel.createMessageCollector(filter2, {
                     max: 1,
                     time: 120000,
-                    errors: ["time"]
                 });
 
                 privCollector2.on('collect', m => {
+                    channel.send("Waiting for the answer ...")
                     console.log(`Your question to ${playerListForQuestioner[askingToIdx]} is ${m.content}`);
                     askingQuestion = m.content;
-                    playerListForQuestioner[askingToIdx].send(`An anonymous user asked you\n**${askingQuestion}** ,who is your answer?`);
+                    playerListForQuestioner[askingToIdx].send(`An anonymous user asked you\n**${askingQuestion}**\nWho is your answer?`);
 
                     playerFields = fieldsExcluding(playerList, playerListForQuestioner[askingToIdx].username);
                     let playerListForAnswerer = listDeleteUser(playerList, playerListForQuestioner[askingToIdx].username);
 
                     let answerAllPlayers = new Discord.MessageEmbed()
                         .setColor('#0099ff')
-                        .setTitle('Select someone below in 120 Seconds')
+                        .setTitle('Select someone below in 120 Seconds. Enter his/her number below.')
                         .addFields(playerFields)
 
                     playerListForQuestioner[askingToIdx].send(answerAllPlayers).then((privM3) => {
                         let privCollector3 = privM3.channel.createMessageCollector(isNumericFilter, {
                             max: 1,
+                            time: 120000
+                        });
+
+                        let privCollector3Error = privM3.channel.createMessageCollector(invalidFilter, {
                             time: 120000
                         });
 
@@ -106,12 +125,23 @@ function messageSomeonePriv(questioner, playerList, channel, playerSet) {
                             //RECURSION
                             startRecursiveRPS(playerListForQuestioner[askingToIdx], playerListForAnswerer[m.content], askingQuestion, channel, playerSet);
                         });
+
+                        privCollector3Error.on('collect', m => {
+                            m.channel.send("You need to enter a valid number! Try again.");
+                        });
+
                     });
                 });
+
             }).catch((e) => {
                 console.log("BİŞİ DEMEDİN!")
             });
         });
+
+        privCollectorError.on('collect', m => {
+            questioner.send("You need to enter a valid number! Try again.");
+        });
+
     });
 
 }
@@ -160,40 +190,52 @@ function startRecursiveRPS(user1, user2, secQuestion, channel, playerSet) {
             console.log("Game has been resolved to ", winStatus);
             if (winStatus == -1) {
                 // User1 Wins
-                channel.send(`${user2} lost the match, we will never know the question!`);
+                channel.send(`❌  ${user2} **lost** the match, we will never know the question!`);
                 user1.send(createEmbed(1));
                 user2.send(createEmbed(-1));
             } else if (winStatus == 0) {
                 // Draw
                 channel.send("It was a draw, starting next round of rps!");
-                startRecursiveRPS(user1, user2, secQuestion, channel);
+                user1.send(createEmbed(0));
+                user2.send(createEmbed(0));
+
+                startRecursiveRPS(user1, user2, secQuestion, channel, playerSet);
             } else {
                 //User2 wins
                 user1.send(createEmbed(-1));
                 user2.send(createEmbed(1));
-                channel.send(`${user2} won the match. The question asked was\n**${secQuestion}**`);
+                channel.send(`☑  ${user2} **won** the match. The question asked was:\n**${secQuestion}**`);
             }
+            if (winStatus != 0){
+                channel.send("Wanna play again? *(Press 🔄 to restart, press ❌ to stop the game.)*").then((again) => {
+                    again.react("🔄").then(again.react("❌")).then(() => {
+                        const replayFilter = (reaction, user) => {
+                            return ['🔄','❌'].includes(reaction.emoji.name) && (!user.bot);
+                        };
 
-            channel.send("Wanna play again?").then((again) => {
-                again.react("🔄").then(() => {
-                    const replayFilter = (reaction, user) => {
-                        return ['🔄'].includes(reaction.emoji.name) && user.id != "799787185402019880";
-                    };
-
-                    again.awaitReactions(replayFilter, {
-                            max: 1,
-                            time: 60000,
-                            errors: ['time']
-                        })
-                        .then(collected => {
-                            const reaction = collected.first();
-                            startGameWithSet(playerSet, channel);
-                        })
-                        .catch(collected => {
-                            console.log("Süre bitti");
-                        });
-                })
-            });
+                        again.awaitReactions(replayFilter, {
+                                max: 1,
+                                time: 60000,
+                                errors: ['time']
+                            })
+                            .then(collected => {
+                                const reaction = collected.first().emoji.name;
+                                if (reaction == '🔄'){
+                                    startGameWithSet(playerSet, channel);
+                                }
+                                else{
+                                    channel.send("Ending the game!");
+                                    endMessage(channel);
+                                }
+                            })
+                            .catch(e => {
+                                console.log("Süre bitti", e);
+                                channel.send("Ending the game!");
+                                endMessage(channel);
+                            });
+                    })
+                });
+            }
         });
 }
 
@@ -240,7 +282,7 @@ async function rpsSendPrivateMessage(user) {
         console.log("Going to start rps to ", user.username);
 
         const privMesFilter = (reaction, user) => {
-            return ["🗻", "📜", "✂"].includes(reaction.emoji.name) && user.id != "799787185402019880";
+            return ["🗻", "📜", "✂"].includes(reaction.emoji.name) && (!user.bot);
         };
 
         user.send("Select one while your opponent does the same!").then(privM => {
@@ -264,9 +306,9 @@ async function rpsSendPrivateMessage(user) {
 }
 
 function createEmbed(winStatus) {
-    let colorCode = ((winStatus == 1) ? "#00D166" : "#FD0061");
-    let text = ((winStatus == 1) ? ("**You won!**") : ("**You Lose!**"));
-    let valText = ((winStatus == 1) ? ("Congrats!") : ("Better luck next time"));
+    let colorCode = (winStatus == 0 ) ? "#969C9F" : ((winStatus == 1) ? "#00D166" : "#FD0061");
+    let text = (winStatus == 0 ) ? "**It's a draw**" : ((winStatus == 1) ? ("**You won!**") : ("**You lost!**"));
+    let valText = (winStatus == 0 ) ? "Playing again!" : ((winStatus == 1) ? ("Congrats!") : ("Better luck next time."));
 
     const exampleEmbed = new Discord.MessageEmbed()
         .setColor(colorCode)
@@ -276,4 +318,8 @@ function createEmbed(winStatus) {
             value: valText
         })
     return exampleEmbed;
+}
+
+function endMessage(channel){
+    channel.send("‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵\n");
 }
