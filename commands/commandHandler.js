@@ -5,6 +5,7 @@ const cs = require(`./cs.js`);
 const rps = require(`./rps.js`);
 const pvprps = require(`./pvprps.js`);
 const snitch = require(`./snitch.js`);
+const million = require(`./million.js`);
 
 
 const commands = {
@@ -15,6 +16,7 @@ const commands = {
     quote,
     nuke,
     cs,
+    million,
 };
 
 module.exports = async function (msg) {

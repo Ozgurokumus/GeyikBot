@@ -182,8 +182,6 @@ function isNumeric(value) {
     return /^-?\d+$/.test(value);
 }
 
-//⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇ Özgürün alanı ⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇⬇
-
 function startRecursiveRPS(user1, user2, secQuestion, channel, playerSet) {
     startPvpRpsBetween(user1, user2)
         .then((winStatus) => {
