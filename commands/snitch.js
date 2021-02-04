@@ -23,7 +23,7 @@ module.exports = async function (message, tokens) {
             playerSet.add(user);
 
             if (reaction.emoji.name == "✅") {
-                playerAwait.stop("Anandan dolayı");
+                playerAwait.stop("Starting the game!");
             }
         });
 
@@ -88,7 +88,7 @@ function messageSomeonePriv(questioner, playerList, channel, playerSet) {
             console.log("Questioner Array: " + playerListForQuestioner);
             console.log("AskingToIdx: ", askingToIdx);
             const filter2 = (m) => true;
-            questioner.send(`What do you want to ask to ${playerListForQuestioner[askingToIdx]}, it will be anonymous😉\nPlease answer in ${120} seconds`).then((privM2) => {
+            questioner.send(`What do you want to ask to ${playerListForQuestioner[askingToIdx]}, it will be anonymous 😉\nPlease answer in ${120} seconds`).then((privM2) => {
                 let privCollector2 = privM2.channel.createMessageCollector(filter2, {
                     max: 1,
                     time: 120000,

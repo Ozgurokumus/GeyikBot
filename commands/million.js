@@ -23,39 +23,80 @@ module.exports = async function (message, tokens) {
     fs.createReadStream('question.csv') // Starts reading csv
         .pipe(csv())
         .on('data', (row) => {
-            if (parseInt(row["question_id"]) == questionId){ // While checking each line if questionId is the wanted one game starts.
+            if (parseInt(row["question_id"]) == questionId){ // While checking each line, if questionId is the wanted one game starts.
                 // Game Start
                 console.log(row);
-
+                isPlayed = false; // To check if anyone reacted to question in the end.
                 questionObj = row; 
                 questionEmbed = createQuestionEmbed(row);
+                var currentTime = {"time":60} // DON'T FORGET TO CHANGE BOTH TIME VARIABLES
 
                 message.channel.send(questionEmbed).then(m => {
                     m.react("🇦").then(() => m.react("🇧"))
                                 .then(() => m.react("🇨"))
                                 .then(() => m.react("🇩"))
+                                .then(() => m.react("❓"))
                     return m;
                 }).then((m) => {
                     answerWait = m.createReactionCollector(answerFilter, { // Waiting for an answer
                         max: 1,
-                        time: 180000
+                        time: 60000
                     });
             
                     answerWait.on('collect', (reaction, user) => {
+                        isPlayed = true;
                         console.log(`${user.tag}'s answer is ${reaction.emoji.name}`);
-                        if (questionObj["correct_choice"] == answerPairs[reaction.emoji.name]){
-                            message.channel.send("BİLDİN! ☑");
+                        if (reaction.emoji.name == "❓"){
+                            message.channel.send(`${user} asked for the answer ❓\nCorrect answer was: ${questionObj["correct_choice"]}`);
+                        }
+                        else if (questionObj["correct_choice"] == answerPairs[reaction.emoji.name]){
+                            message.channel.send(`${user} answered correct ☑`);
                         }
                         else{
-                            message.channel.send(`Yanlış cevap! ❌\nDoğru cevap: ${questionObj["correct_choice"]}`);
+                            message.channel.send(`${user} answered wrong ❌\nCorrect answer was: ${questionObj["correct_choice"]}`);
                         } 
                     });
+
+                    answerWait.on('end', () => {
+                        if (isPlayed == false) {
+                            message.channel.send(`Time over :alarm_clock: \nCorrect answer was: ${questionObj["correct_choice"]}`);
+                        }
+                    });
+
+                    
+                    var interval = setInterval(() => {
+                        currentTime.time--;
+                        if (currentTime.time == 0){
+                            clearInterval(interval);
+                        }
+                    },1000);
+
+                });
+
+                message.channel.send(`You have ${currentTime.time} seconds left to answer!`).then((msg) => {      
+                    sendTime(msg,currentTime);
                 });
             }
         })
         .on('end', () => {
             console.log("Finished reading csv file!")
         });
+
+}
+
+function sendTime(msg,count){
+
+    if (count.time == 0 || isPlayed == true){
+        msg.delete();
+        return;
+    }
+    
+    console.log(`${count.time} seconds left!`);
+    setTimeout(() => {
+        msg.edit(`You have ${count.time} seconds left to answer!`).then(() => {
+            sendTime(msg,count);
+        });
+    },1000);
 
 }
 
