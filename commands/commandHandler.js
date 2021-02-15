@@ -1,7 +1,5 @@
-const dollar = require(`./dollarFetch.js`);
 const quote = require(`./quote.js`);
 const nuke = require(`./nuke.js`);
-const cs = require(`./cs.js`);
 const rps = require(`./rps.js`);
 const pvprps = require(`./pvprps.js`);
 const snitch = require(`./snitch.js`);
@@ -9,13 +7,11 @@ const million = require(`./million.js`);
 
 
 const commands = {
-    dollar,
     rps,
     pvprps,
     snitch,
     quote,
     nuke,
-    cs,
     million,
 };
 
