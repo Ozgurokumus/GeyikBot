@@ -48,10 +48,6 @@ Currently available locales are:
 
 `!million`
 
-* 🥳 Play Snitch
-
-`!snitch`
-
 * 🧠 Random quote
 
 `!quote`
@@ -59,6 +55,10 @@ Currently available locales are:
 * 💣 Nuke the channel
 
 `!nuke`
+
+* 🥳 Play Snitch
+
+`!snitch`
 
 * Command Handler from [discordjs.guide](https://discordjs.guide/)
 
