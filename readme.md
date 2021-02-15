@@ -16,11 +16,11 @@ cd GeyikBot
 npm install
 ```
 
-After installation finishes you can use `node index.js` to start the bot.
+After installation finishes you can use `node bot.js` to start the bot.
 
 ## ⚙️ Configuration
 
-Fill out the values of `.env_sample`.
+Rename `.env_sample` to `.env` and fill out the values.
 
 ⚠️ **Note: Never commit or share your token or api keys publicly** ⚠️
 
