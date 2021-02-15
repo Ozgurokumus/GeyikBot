@@ -62,10 +62,11 @@ Currently available locales are:
 
 * Command Handler from [discordjs.guide](https://discordjs.guide/)
 
-![reactions](https://github.com/kayraucklnc/GeyikBot/blob/master/media/1.png?raw=true)
-![reactions](https://github.com/kayraucklnc/GeyikBot/blob/master/media/2.png?raw=true)
-![reactions](https://github.com/kayraucklnc/GeyikBot/blob/master/media/3.png?raw=true)
+![reactions](https://github.com/kayraucklnc/GeyikBot/blob/master/media/5.png?raw=true)
 ![reactions](https://github.com/kayraucklnc/GeyikBot/blob/master/media/4.png?raw=true)
+![reactions](https://github.com/kayraucklnc/GeyikBot/blob/master/media/2.png?raw=true)
+![reactions](https://github.com/kayraucklnc/GeyikBot/blob/master/media/1.png?raw=true)
+![reactions](https://github.com/kayraucklnc/GeyikBot/blob/master/media/3.png?raw=true)
 
 ## 🤝 Contributing
 
